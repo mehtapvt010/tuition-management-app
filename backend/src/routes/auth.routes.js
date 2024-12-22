@@ -4,33 +4,38 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth.middleware.js');
 const User = require('../models/user.model.js');
+const {registerSchema, loginSchema} = require('../validators/authValidator.js');
 
 // ---------------------------------------
 // POST /auth/register
 // ---------------------------------------
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    // Validate request body against joi schema
+    const { error, value } = registerSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
-    // 1) Check if a user with the same email already exists
+    const { name, email, password, role } = value;
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    // 2) Hash the password
+    // Hash password
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // 3) Create a new user document
+    // Create & save new user
     const newUser = new User({
       name,
       email,
       passwordHash,
-      role  // If not provided, defaults to 'student'
+      role
     });
-
-    // 4) Save user to DB
     await newUser.save();
 
     return res.status(201).json({ message: 'User registered successfully' });
@@ -45,29 +50,30 @@ router.post('/register', async (req, res) => {
 // ---------------------------------------
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    // Validate with joi
+    const { error, value } = loginSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
 
-    // 1) Find user by email
+    const { email, password } = value;
+
+    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // 2) Compare password with stored hash
+    // Compare password
     const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordCorrect) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // 3) Generate JWT token
-    const tokenPayload = {
-      userId: user._id,
-      role: user.role
-    };
-    // Sign the token with your secret
+    // Generate JWT
+    const tokenPayload = { userId: user._id, role: user.role };
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    // 4) Return token + basic user info
     return res.status(200).json({
       message: 'Logged in successfully',
       token,
@@ -87,7 +93,7 @@ router.post('/login', async (req, res) => {
 //optional route
 //This means logging in will be necessary to get token to view profile postman testing confirmed
 // Protected route: GET profile
-router.get('/profile', authMiddleware, async (req, res) => {
+router.get('/profile', authMiddleware.authMiddleware, async (req, res) => {
   try {
     // req.user is set by the middleware
     const userId = req.user.userId;
