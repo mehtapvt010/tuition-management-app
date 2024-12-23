@@ -1,4 +1,5 @@
 const Student = require('../models/student.model.js');
+const { createStudentSchema, updateStudentSchema } = require('../validators/studentValidator');
 
 // GET all students
 exports.getAllStudents = async (req, res) => {
@@ -29,7 +30,12 @@ exports.getStudentById = async (req, res) => {
 // CREATE new student
 exports.createStudent = async (req, res) => {
   try {
-    const { name, email, grade, parentContact, notes } = req.body;
+    // Validate body
+    const { error, value } = createStudentSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { name, email, grade, parentContact, notes } = value;
 
     // Example: Check for unique email
     const existingStudent = await Student.findOne({ email });
@@ -50,7 +56,12 @@ exports.createStudent = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, grade, parentContact, notes } = req.body;
+    // Validate body
+    const { error, value } = updateStudentSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    const { name, email, grade, parentContact, notes } = value;
 
     const updatedStudent = await Student.findByIdAndUpdate(
       id,

@@ -3,6 +3,8 @@ import axios from 'axios';
 
 const ManageStudents = () => {
   const [students, setStudents] = useState([]);
+  const [displayedStudents, setDisplayedStudents] = useState([]); // for filtered view
+  const [searchTerm, setSearchTerm] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [grade, setGrade] = useState('');
@@ -18,6 +20,7 @@ const ManageStudents = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStudents(res.data);
+      setDisplayedStudents(res.data); // initially show all
     } catch (err) {
       console.error('Error fetching students:', err);
     }
@@ -26,6 +29,22 @@ const ManageStudents = () => {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  //could add search to server side as well to only fetch what is searched but 
+  //right now front end filtering is fine because our database is small
+  // 1) Filter function
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    // filter locally
+    const filtered = students.filter((s) =>
+      s.name.toLowerCase().includes(term.toLowerCase()) ||
+      s.email.toLowerCase().includes(term.toLowerCase()) ||
+      s.grade.toLowerCase().includes(term.toLowerCase())
+    );
+    setDisplayedStudents(filtered);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,6 +99,17 @@ const ManageStudents = () => {
     <div>
       <h2>Manage Students</h2>
 
+      {/* Search input */}
+      <div>
+        <label>Search: </label>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Type name, email, or grade"
+        />
+      </div>
+
       <form onSubmit={handleSubmit}>
         <h3>{editingStudentId ? 'Edit Student' : 'Add New Student'}</h3>
         <div>
@@ -133,7 +163,7 @@ const ManageStudents = () => {
           </tr>
         </thead>
         <tbody>
-          {students.map((s) => (
+          {displayedStudents.map((s) => (
             <tr key={s._id}>
               <td>{s.name}</td>
               <td>{s.email}</td>
