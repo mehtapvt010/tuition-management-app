@@ -4,8 +4,36 @@ const { createStudentSchema, updateStudentSchema } = require('../validators/stud
 // GET all students
 exports.getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().sort({ createdAt: -1 });
-    return res.status(200).json(students);
+    const { page = 1, limit = 5, search } = req.query;
+
+    let filter = {};
+    if (search) {
+      // If you want to combine pagination with searching:
+      filter = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { grade: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    // Convert to number
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+
+    const totalCount = await Student.countDocuments(filter);
+    const students = await Student.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+
+    return res.status(200).json({
+      students,
+      currentPage: pageNum,
+      totalPages: Math.ceil(totalCount / limitNum),
+      totalCount
+    });
   } catch (error) {
     console.error('Error fetching students:', error);
     return res.status(500).json({ message: 'Server error' });

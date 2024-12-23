@@ -10,40 +10,51 @@ const ManageStudents = () => {
   const [grade, setGrade] = useState('');
   const [parentContact, setParentContact] = useState({ phone: '', email: '' });
   const [notes, setNotes] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 5; // or user choice?
 
   const [editingStudentId, setEditingStudentId] = useState(null);
   const token = localStorage.getItem('token'); // or handle cookies
 
+  // 1) The main fetch function
   const fetchStudents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/students', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStudents(res.data);
-      setDisplayedStudents(res.data); // initially show all
+      const res = await axios.get(
+        `http://localhost:5000/students?search=${searchTerm}&page=${currentPage}&limit=${limit}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setStudents(res.data.students);
+      setCurrentPage(res.data.currentPage);
+      setTotalPages(res.data.totalPages);
     } catch (err) {
       console.error('Error fetching students:', err);
     }
   };
 
+  // Next/Prev
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  // 2) useEffect that runs whenever `searchTerm` or `currentPage` changes
   useEffect(() => {
     fetchStudents();
-  }, []);
+    // eslint-disable-next-line
+  }, [searchTerm, currentPage]);
+  
 
-  //could add search to server side as well to only fetch what is searched but 
-  //right now front end filtering is fine because our database is small
-  // 1) Filter function
+  // 3) handleSearchChange - sets searchTerm AND reset page to 1
   const handleSearchChange = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-
-    // filter locally
-    const filtered = students.filter((s) =>
-      s.name.toLowerCase().includes(term.toLowerCase()) ||
-      s.email.toLowerCase().includes(term.toLowerCase()) ||
-      s.grade.toLowerCase().includes(term.toLowerCase())
-    );
-    setDisplayedStudents(filtered);
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);  // always reset to page 1 on new search
   };
 
   const handleSubmit = async (e) => {
@@ -163,7 +174,7 @@ const ManageStudents = () => {
           </tr>
         </thead>
         <tbody>
-          {displayedStudents.map((s) => (
+          {students.map((s) => (
             <tr key={s._id}>
               <td>{s.name}</td>
               <td>{s.email}</td>
@@ -182,6 +193,11 @@ const ManageStudents = () => {
           ))}
         </tbody>
       </table>
+      <div>
+        <button onClick={handlePrevPage} disabled={currentPage === 1}>Prev</button>
+        <span> Page {currentPage} of {totalPages} </span>
+        <button onClick={handleNextPage} disabled={currentPage === totalPages}>Next</button>
+      </div>
     </div>
   );
 };
