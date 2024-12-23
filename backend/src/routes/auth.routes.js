@@ -72,7 +72,9 @@ router.post('/login', async (req, res) => {
 
     // Generate JWT
     const tokenPayload = { userId: user._id, role: user.role };
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });//later use env variable for expiry
+
+    //see about refresh token as well later
 
     return res.status(200).json({
       message: 'Logged in successfully',

@@ -3,6 +3,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
 const rateLimit = require('express-rate-limit');
 const userRoutes = require('./routes/user.routes');
+const studentRoutes = require('./routes/student.routes');
+const classRoutes = require('./routes/class.routes');
 const morgan = require('morgan');
 
 
@@ -25,6 +27,12 @@ app.use('/auth', authLimiter, authRoutes);
 
 //admin only route
 app.use('/users', userRoutes);
+
+// Student routes
+app.use('/students', studentRoutes);
+
+// Class routes (added later)
+app.use('/classes', classRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
