@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ManageStudents from './pages/ManageStudents';
 import ManageClasses from './pages/ManageClasses';
+import ManageAttendance from './pages/ManageAttendance';
+import ViewAttendance from './pages/ViewAttendance';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/admin/students" element={<ManageStudents />} />
         <Route path="/admin/classes" element={<ManageClasses />} />
+        <Route path="/admin/attendance" element={<ManageAttendance />} />
+        <Route path="/admin/attendance/view" element={<ViewAttendance />} />
       </Routes>
     </div>
   );

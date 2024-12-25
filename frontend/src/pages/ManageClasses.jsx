@@ -118,7 +118,7 @@ const ManageClasses = () => {
         <div>
           <label>Students:</label>
           <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
-            {allStudents.map(st => (
+            {students.map(st => (
               <div key={st._id}>
                 <input
                   type="checkbox"

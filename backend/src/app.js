@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 const userRoutes = require('./routes/user.routes');
 const studentRoutes = require('./routes/student.routes');
 const classRoutes = require('./routes/class.routes');
+const attendanceRoutes = require('./routes/attendance.routes');
 const morgan = require('morgan');
 
 
@@ -33,6 +34,9 @@ app.use('/students', studentRoutes);
 
 // Class routes (added later)
 app.use('/classes', classRoutes);
+
+//attendance routes
+app.use('/attendance', attendanceRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
