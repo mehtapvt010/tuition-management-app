@@ -5,16 +5,17 @@ const ManageClasses = () => {
   const [classes, setClasses] = useState([]);
   const [name, setName] = useState('');
   const [level, setLevel] = useState('');
-  const [students, setStudents] = useState([]);
-  const [allStudents, setAllStudents] = useState([]);
+  const [students, setStudents] = useState([]); // Array of selected student IDs
+  const [allStudents, setAllStudents] = useState([]); // Array of all students
 
   const [editingClassId, setEditingClassId] = useState(null);
   const token = localStorage.getItem('token');
 
+  // Fetch classes
   const fetchClasses = async () => {
     try {
       const res = await axios.get('http://localhost:5000/classes', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setClasses(res.data);
     } catch (err) {
@@ -22,12 +23,14 @@ const ManageClasses = () => {
     }
   };
 
+  // Fetch all students
   const fetchAllStudents = async () => {
     try {
       const res = await axios.get('http://localhost:5000/students', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setAllStudents(res.data);
+      setAllStudents(res.data.students);
+      console.log(res.data);
     } catch (err) {
       console.error('Error fetching students:', err);
     }
@@ -38,20 +41,23 @@ const ManageClasses = () => {
     fetchAllStudents();
   }, []);
 
+  // Handle form submission for creating/updating a class
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = { name, level, students };
+      const payload = { name, level, students }; // Send selected student IDs
       if (editingClassId) {
+        // Update class
         await axios.put(`http://localhost:5000/classes/${editingClassId}`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       } else {
+        // Create new class
         await axios.post('http://localhost:5000/classes', payload, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
-      fetchClasses();
+      fetchClasses(); // Refresh class list
       setName('');
       setLevel('');
       setStudents([]);
@@ -61,19 +67,19 @@ const ManageClasses = () => {
     }
   };
 
+  // Handle editing a class
   const handleEdit = (cls) => {
     setEditingClassId(cls._id);
     setName(cls.name);
     setLevel(cls.level);
-    // If cls.students is an array of objects (populated), map them to _id
-    const studentIds = cls.students.map(s => (typeof s === 'object' ? s._id : s));
-    setStudents(studentIds);
+    setStudents(cls.students.map((s) => (typeof s === 'object' ? s._id : s))); // Extract student IDs
   };
 
+  // Handle deleting a class
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/classes/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchClasses();
     } catch (err) {
@@ -81,10 +87,10 @@ const ManageClasses = () => {
     }
   };
 
-  // Toggling student IDs in array
+  // Toggle student selection
   const handleStudentSelect = (studentId) => {
     if (students.includes(studentId)) {
-      setStudents(students.filter(id => id !== studentId));
+      setStudents(students.filter((id) => id !== studentId));
     } else {
       setStudents([...students, studentId]);
     }
@@ -118,14 +124,14 @@ const ManageClasses = () => {
         <div>
           <label>Students:</label>
           <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
-            {students.map(st => (
-              <div key={st._id}>
+            {allStudents.map((student) => (
+              <div key={student._id}>
                 <input
                   type="checkbox"
-                  checked={students.includes(st._id)}
-                  onChange={() => handleStudentSelect(st._id)}
+                  checked={students.includes(student._id)}
+                  onChange={() => handleStudentSelect(student._id)}
                 />
-                {st.name} ({st.email})
+                {student.name} ({student.email})
               </div>
             ))}
           </div>
@@ -147,12 +153,12 @@ const ManageClasses = () => {
           </tr>
         </thead>
         <tbody>
-          {classes.map(cls => (
+          {classes.map((cls) => (
             <tr key={cls._id}>
               <td>{cls.name}</td>
               <td>{cls.level}</td>
               <td>
-                {cls.students?.map(s =>
+                {cls.students?.map((s) =>
                   typeof s === 'object' ? s.name : s
                 ).join(', ')}
               </td>

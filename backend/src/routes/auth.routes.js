@@ -60,6 +60,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const user = await User.findOne({ email });
+    //console.log(user);
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -75,7 +76,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });//later use env variable for expiry
 
     //see about refresh token as well later
-
+    console.log(user._id);
     return res.status(200).json({
       message: 'Logged in successfully',
       token,

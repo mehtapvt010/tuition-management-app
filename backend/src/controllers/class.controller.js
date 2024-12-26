@@ -1,4 +1,5 @@
 const ClassModel = require('../models/class.model.js');
+const Student = require('../models/student.model.js');
 
 // GET all classes
 exports.getAllClasses = async (req, res) => {

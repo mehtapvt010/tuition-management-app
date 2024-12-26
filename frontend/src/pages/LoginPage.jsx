@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
+import mongoose from 'mongoose';
 
 // Simple validation function (client-side checks)
 function validateLoginForm({ email, password }) {
@@ -48,15 +49,20 @@ const LoginPage = () => {
       });
       setLoading(false);
 
+      //console.log(res);
+
       // 3) Handle success
 
       if(res.status === 200) {
         const { token, user } = res.data;
 
+        let properUserId=new mongoose.Types.ObjectId(user.id);
         // For localStorage approach:
         localStorage.setItem('token', token);
-        localStorage.setItem('userId', user.id);
+        localStorage.setItem('userId', properUserId);
         localStorage.setItem('userRole', user.role);
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userName', user.name);
 
         setSuccessMessage('Logged in successfully!');
 

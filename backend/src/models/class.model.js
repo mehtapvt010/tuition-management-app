@@ -4,7 +4,8 @@ const classSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },   // e.g. "Math 101"
     level: { type: String, required: true },  // e.g. "High School"
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }]
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+    studentNames: [{ type: String }]
   },
   { timestamps: true }
 );

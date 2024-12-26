@@ -18,3 +18,20 @@ exports.sendStudentAbsenceEmail = async (toEmail, recentAbsences) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+// Send email function
+exports.sendEmail = async (to, subject, text, html) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER, // Sender address
+      to, // Recipient(s)
+      subject, // Subject line
+      text, // Plain text body
+      html, // HTML body
+    });
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error(`Failed to send email to ${to}:`, error);
+    throw new Error('Email sending failed.');
+  }
+};
